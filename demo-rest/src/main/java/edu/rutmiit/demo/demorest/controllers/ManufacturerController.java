@@ -1,7 +1,6 @@
 package edu.rutmiit.demo.demorest.controllers;
 
-import edu.rutmiit.demo.medicinescontract.dto.ManufacturerRequest;
-import edu.rutmiit.demo.medicinescontract.dto.ManufacturerResponse;
+import edu.rutmiit.demo.medicinescontract.dto.*;
 import edu.rutmiit.demo.medicinescontract.endpoints.ManufacturerApi;
 import edu.rutmiit.demo.demorest.assemblers.ManufacturerModelAssembler;
 import edu.rutmiit.demo.demorest.service.ManufacturerService;
@@ -47,8 +46,16 @@ public class ManufacturerController implements ManufacturerApi {
     }
 
     @Override
-    public EntityModel<ManufacturerResponse> updateManufacturer(Long id, ManufacturerRequest request) {
-        ManufacturerResponse updatedManufacturer = manufacturerService.update(id, request);
+    public EntityModel<ManufacturerResponse> updateManufacturer(Long id, UpdateManufacturerRequest request) {
+        // Конвертируем UpdateManufacturerRequest в ManufacturerRequest
+        ManufacturerRequest manufacturerRequest = new ManufacturerRequest(
+                request.name(),
+                request.country(),
+                request.licenseNumber(),
+                request.contactEmail()
+        );
+
+        ManufacturerResponse updatedManufacturer = manufacturerService.update(id, manufacturerRequest);
         return manufacturerModelAssembler.toModel(updatedManufacturer);
     }
 

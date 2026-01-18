@@ -18,7 +18,7 @@ public class ManufacturerModelAssembler implements RepresentationModelAssembler<
     public EntityModel<ManufacturerResponse> toModel(ManufacturerResponse manufacturer) {
         return EntityModel.of(manufacturer,
                 linkTo(methodOn(ManufacturerController.class).getManufacturerById(manufacturer.getId())).withSelfRel(),
-                linkTo(methodOn(MedicationController.class).getAllMedications(manufacturer.getId(), null, 0, 10)).withRel("medications"),
+                linkTo(methodOn(MedicationController.class).getAllMedications(manufacturer.getId(), null, null, 0, 10)).withRel("medications"),
                 linkTo(methodOn(ManufacturerController.class).getAllManufacturers()).withRel("collection")
         );
     }

@@ -1,21 +1,25 @@
 package edu.rutmiit.demo.demorest.controllers;
 
 import edu.rutmiit.demo.demorest.config.RabbitMQConfig;
-import edu.rutmiit.demo.medicinescontract.events.DrugInteractionCheckedEvent;
+import edu.rutmiit.demo.events.DrugInteractionCheckedEvent;
 import grpc.demo.DrugInteractionServiceGrpc;
 import grpc.demo.DrugInteractionRequest;
+import grpc.demo.DrugInteractionResponse;
 import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/medications")
+@RequestMapping("/api/drug-interactions")
 public class DrugInteractionController {
 
     @GrpcClient("drug-interaction-service")
-    private DrugInteractionServiceGrpc.DrugInteractionServiceBlockingStub interactionStub;
+    private DrugInteractionServiceGrpc.DrugInteractionServiceBlockingStub drugInteractionStub;
 
     private final RabbitTemplate rabbitTemplate;
 
@@ -23,42 +27,41 @@ public class DrugInteractionController {
         this.rabbitTemplate = rabbitTemplate;
     }
 
-    @PostMapping("/{id}/check-interaction")
-    public String checkDrugInteraction(
-            @PathVariable Long id,
-            @RequestParam String drugName,
-            @RequestParam(required = false) List<String> concurrentDrugs,
-            @RequestParam(defaultValue = "30") Integer patientAge) {
-
-        // Вызов gRPC сервиса для проверки взаимодействий
-        var request = DrugInteractionRequest.newBuilder()
-                .setDrugId(id)
-                .setDrugName(drugName)
-                .addAllConcurrentDrugs(concurrentDrugs != null ? concurrentDrugs : List.of())
-                .setPatientAge(patientAge)
+    @PostMapping("/check")
+    public DrugInteractionResponse checkDrugInteraction(@RequestBody InteractionCheckRequest request) {
+        // Вызов gRPC сервиса
+        DrugInteractionRequest grpcRequest = DrugInteractionRequest.newBuilder()
+                .setDrugId(request.drugId())
+                .setDrugName(request.drugName())
+                .addAllConcurrentDrugs(request.concurrentDrugs())
+                .setPatientAge(request.patientAge())
+                .setPatientCondition(request.patientCondition())
                 .build();
 
-        var gRpcResponse = interactionStub.checkDrugInteraction(request);
+        DrugInteractionResponse grpcResponse = drugInteractionStub.checkDrugInteraction(grpcRequest);
 
-        // Отправка события в Fanout для аудита и уведомлений
-        var event = new DrugInteractionCheckedEvent(
-                gRpcResponse.getDrugId(),
-                gRpcResponse.getDrugName(),
-                gRpcResponse.getRiskLevel(),
-                gRpcResponse.getSeverity(),
-                gRpcResponse.getContraindicationsList(),
-                gRpcResponse.getRecommendation()
+        // Отправка события
+        DrugInteractionCheckedEvent event = new DrugInteractionCheckedEvent(
+                grpcResponse.getDrugId(),
+                grpcResponse.getDrugName(),
+                grpcResponse.getRiskLevel(),
+                grpcResponse.getSeverity(),
+                grpcResponse.getContraindicationsList(),
+                grpcResponse.getRecommendation()
         );
 
-        rabbitTemplate.convertAndSend(RabbitMQConfig.FANOUT_EXCHANGE, "", event);
+        rabbitTemplate.convertAndSend(RabbitMQConfig.INTERACTIONS_EXCHANGE,
+                RabbitMQConfig.ROUTING_KEY_INTERACTION_CHECKED,
+                event);
 
-        return String.format("Проверка взаимодействий для %s: %s (Уровень риска: %d)",
-                drugName, gRpcResponse.getRecommendation(), gRpcResponse.getRiskLevel());
+        return grpcResponse;
     }
 
-    @GetMapping("/{id}/interactions")
-    public String getDrugInteractions(@PathVariable Long id) {
-        // Получение информации о взаимодействиях
-        return "Информация о взаимодействиях препарата";
-    }
+    public record InteractionCheckRequest(
+            Long drugId,
+            String drugName,
+            List<String> concurrentDrugs,
+            int patientAge,
+            String patientCondition
+    ) {}
 }

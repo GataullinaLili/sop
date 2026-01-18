@@ -3,7 +3,6 @@ package edu.rutmiit.demo.demorest.assemblers;
 import edu.rutmiit.demo.medicinescontract.dto.MedicationResponse;
 import edu.rutmiit.demo.demorest.controllers.ManufacturerController;
 import edu.rutmiit.demo.demorest.controllers.MedicationController;
-import edu.rutmiit.demo.demorest.controllers.DrugInteractionController;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.server.RepresentationModelAssembler;
 import org.springframework.stereotype.Component;
@@ -18,11 +17,10 @@ public class MedicationModelAssembler implements RepresentationModelAssembler<Me
     public EntityModel<MedicationResponse> toModel(MedicationResponse medication) {
         return EntityModel.of(medication,
                 linkTo(methodOn(MedicationController.class).getMedicationById(medication.getId())).withSelfRel(),
-                linkTo(methodOn(ManufacturerController.class).getManufacturerById(
-                        medication.getManufacturer().getId())).withRel("manufacturer"),
-                linkTo(methodOn(DrugInteractionController.class).checkDrugInteraction(
-                        medication.getId(), medication.getName(), null, 30)).withRel("checkInteraction"),
-                linkTo(methodOn(MedicationController.class).getAllMedications(null, null, 0, 10)).withRel("collection")
+                linkTo(methodOn(ManufacturerController.class).getManufacturerById(medication.getManufacturer().getId())).withRel("manufacturer"),
+                linkTo(methodOn(MedicationController.class).getAllMedications(null, null, null, 0, 10)).withRel("collection"),
+                linkTo(methodOn(MedicationController.class).getPrescriptionMedications(0, 10)).withRel("prescription-medications"),
+                linkTo(methodOn(MedicationController.class).getOverTheCounterMedications(0, 10)).withRel("otc-medications")
         );
     }
 }

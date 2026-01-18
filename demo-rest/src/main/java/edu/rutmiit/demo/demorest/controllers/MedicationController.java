@@ -35,11 +35,36 @@ public class MedicationController implements MedicationApi {
     }
 
     @Override
-    public PagedModel<EntityModel<MedicationResponse>> getAllMedications(
-            Long manufacturerId, String atcCode, int page, int size) {
+    public PagedModel<EntityModel<MedicationResponse>> getAllMedications(Long manufacturerId, String atcCode,
+                                                                         String search, int page, int size) {
+        PagedResponse<MedicationResponse> pagedResponse = medicationService.findAllMedications(
+                manufacturerId, atcCode, search, page, size);
 
-        PagedResponse<MedicationResponse> pagedResponse =
-                medicationService.findAllMedications(manufacturerId, atcCode, page, size);
+        Page<MedicationResponse> medicationPage = new PageImpl<>(
+                pagedResponse.content(),
+                PageRequest.of(pagedResponse.pageNumber(), pagedResponse.pageSize()),
+                pagedResponse.totalElements()
+        );
+
+        return pagedResourcesAssembler.toModel(medicationPage, medicationModelAssembler);
+    }
+
+    @Override
+    public PagedModel<EntityModel<MedicationResponse>> getPrescriptionMedications(int page, int size) {
+        PagedResponse<MedicationResponse> pagedResponse = medicationService.findPrescriptionMedications(page, size);
+
+        Page<MedicationResponse> medicationPage = new PageImpl<>(
+                pagedResponse.content(),
+                PageRequest.of(pagedResponse.pageNumber(), pagedResponse.pageSize()),
+                pagedResponse.totalElements()
+        );
+
+        return pagedResourcesAssembler.toModel(medicationPage, medicationModelAssembler);
+    }
+
+    @Override
+    public PagedModel<EntityModel<MedicationResponse>> getOverTheCounterMedications(int page, int size) {
+        PagedResponse<MedicationResponse> pagedResponse = medicationService.findOverTheCounterMedications(page, size);
 
         Page<MedicationResponse> medicationPage = new PageImpl<>(
                 pagedResponse.content(),
@@ -69,5 +94,11 @@ public class MedicationController implements MedicationApi {
     @Override
     public void deleteMedication(Long id) {
         medicationService.deleteMedication(id);
+    }
+
+    @Override
+    public EntityModel<MedicationResponse> updatePrescriptionStatus(Long id, boolean prescriptionRequired) {
+        MedicationResponse updatedMedication = medicationService.updatePrescriptionStatus(id, prescriptionRequired);
+        return medicationModelAssembler.toModel(updatedMedication);
     }
 }

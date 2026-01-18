@@ -42,8 +42,7 @@ public class ManufacturerDataFetcher {
     }
 
     @DgsMutation
-    public ManufacturerResponse updateManufacturer(@InputArgument Long id,
-                                                   @InputArgument("input") Map<String, String> input) {
+    public ManufacturerResponse updateManufacturer(@InputArgument Long id, @InputArgument("input") Map<String, String> input) {
         ManufacturerRequest request = new ManufacturerRequest(
                 input.get("name"),
                 input.get("country"),

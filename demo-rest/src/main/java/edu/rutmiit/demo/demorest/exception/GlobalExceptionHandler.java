@@ -40,10 +40,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<StatusResponse> handleAllExceptions(Exception ex) {
-        // Логирование ошибки
-        ex.printStackTrace();
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new StatusResponse("error", "Произошла непредвиденная ошибка: " + ex.getMessage()));
+                .body(new StatusResponse("error", "An unexpected error occurred: " + ex.getMessage()));
     }
 }

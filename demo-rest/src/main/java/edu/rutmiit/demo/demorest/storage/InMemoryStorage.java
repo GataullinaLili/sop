@@ -1,6 +1,7 @@
 package edu.rutmiit.demo.demorest.storage;
 
-import edu.rutmiit.demo.medicinescontract.dto.*;
+import edu.rutmiit.demo.medicinescontract.dto.ManufacturerResponse;
+import edu.rutmiit.demo.medicinescontract.dto.MedicationResponse;
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Component;
 
@@ -20,43 +21,71 @@ public class InMemoryStorage {
 
     @PostConstruct
     public void init() {
-        // Производители
-        ManufacturerResponse pfizer = new ManufacturerResponse(
+        // Создаем несколько производителей
+        ManufacturerResponse manufacturer1 = new ManufacturerResponse(
                 manufacturerSequence.incrementAndGet(),
-                "Pfizer", "USA", "FDA-12345", "contact@pfizer.com");
-
-        ManufacturerResponse novartis = new ManufacturerResponse(
+                "Pfizer",
+                "USA",
+                "LIC-001",
+                "contact@pfizer.com"
+        );
+        ManufacturerResponse manufacturer2 = new ManufacturerResponse(
                 manufacturerSequence.incrementAndGet(),
-                "Novartis", "Switzerland", "EMA-67890", "contact@novartis.com");
+                "Novartis",
+                "Switzerland",
+                "LIC-002",
+                "contact@novartis.com"
+        );
+        manufacturers.put(manufacturer1.getId(), manufacturer1);
+        manufacturers.put(manufacturer2.getId(), manufacturer2);
 
-        ManufacturerResponse bayer = new ManufacturerResponse(
-                manufacturerSequence.incrementAndGet(),
-                "Bayer", "Germany", "EMA-54321", "contact@bayer.com");
+        // Создаем несколько лекарств
+        long medId1 = medicationSequence.incrementAndGet();
+        medications.put(medId1, new MedicationResponse(
+                medId1,
+                "Аспирин",
+                "Acetylsalicylic acid",
+                "B01AC06",
+                "Таблетки",
+                new BigDecimal("500"),
+                "мг",
+                manufacturer1,
+                false,
+                "Хранить в сухом месте",
+                36,
+                LocalDateTime.now()
+        ));
 
-        manufacturers.put(pfizer.getId(), pfizer);
-        manufacturers.put(novartis.getId(), novartis);
-        manufacturers.put(bayer.getId(), bayer);
+        long medId2 = medicationSequence.incrementAndGet();
+        medications.put(medId2, new MedicationResponse(
+                medId2,
+                "Амоксициллин",
+                "Amoxicillin",
+                "J01CA04",
+                "Капсулы",
+                new BigDecimal("250"),
+                "мг",
+                manufacturer2,
+                true,
+                "Хранить в холодильнике",
+                24,
+                LocalDateTime.now()
+        ));
 
-        // Лекарства
-        medications.put(medicationSequence.incrementAndGet(),
-                new MedicationResponse(
-                        1L, "Аспирин", "Acetylsalicylic acid", "B01AC06",
-                        "Таблетки", new BigDecimal("500"), "мг", bayer,
-                        false, "Хранить при температуре до 25°C", 36, LocalDateTime.now()
-                ));
-
-        medications.put(medicationSequence.incrementAndGet(),
-                new MedicationResponse(
-                        2L, "Амоксиклав", "Amoxicillin/Clavulanic acid", "J01CR02",
-                        "Таблетки", new BigDecimal("625"), "мг", pfizer,
-                        true, "Хранить в сухом месте", 24, LocalDateTime.now()
-                ));
-
-        medications.put(medicationSequence.incrementAndGet(),
-                new MedicationResponse(
-                        3L, "Лозартан", "Losartan", "C09CA01",
-                        "Таблетки", new BigDecimal("50"), "мг", novartis,
-                        true, "Хранить в оригинальной упаковке", 48, LocalDateTime.now()
-                ));
+        long medId3 = medicationSequence.incrementAndGet();
+        medications.put(medId3, new MedicationResponse(
+                medId3,
+                "Ибупрофен",
+                "Ibuprofen",
+                "M01AE01",
+                "Таблетки",
+                new BigDecimal("200"),
+                "мг",
+                manufacturer1,
+                false,
+                "Хранить при комнатной температуре",
+                48,
+                LocalDateTime.now()
+        ));
     }
 }

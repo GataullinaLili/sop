@@ -22,15 +22,31 @@ public class MedicationDataFetcher {
         return medicationService.findMedicationById(id);
     }
 
+    // Используем перегруженный метод с 4 параметрами
     @DgsQuery
     public PagedResponse<MedicationResponse> medications(
             @InputArgument Long manufacturerId,
-            @InputArgument String atcCode,
-            @InputArgument int page,
-            @InputArgument int size) {
-        return medicationService.findAllMedications(manufacturerId, atcCode, page, size);
+            @InputArgument Integer page,
+            @InputArgument Integer size) {
+        int pageNum = page != null ? page : 0;
+        int pageSize = size != null ? size : 10;
+        return medicationService.findAllMedications(manufacturerId, pageNum, pageSize);
     }
 
+    // Альтернативно, можно добавить методы для GraphQL с полным набором параметров
+    @DgsQuery
+    public PagedResponse<MedicationResponse> medicationsWithFilter(
+            @InputArgument Long manufacturerId,
+            @InputArgument String atcCode,
+            @InputArgument String search,
+            @InputArgument Integer page,
+            @InputArgument Integer size) {
+        int pageNum = page != null ? page : 0;
+        int pageSize = size != null ? size : 10;
+        return medicationService.findAllMedications(manufacturerId, atcCode, search, pageNum, pageSize);
+    }
+
+    // Этот метод разрешает вложенное поле 'manufacturer' внутри типа 'Medication'
     @DgsData(parentType = "Medication", field = "manufacturer")
     public ManufacturerResponse manufacturer(DataFetchingEnvironment dfe) {
         MedicationResponse medication = dfe.getSource();
@@ -49,20 +65,23 @@ public class MedicationDataFetcher {
                 Long.parseLong(input.get("manufacturerId").toString()),
                 Boolean.parseBoolean(input.get("prescriptionRequired").toString()),
                 (String) input.get("storageConditions"),
-                input.get("shelfLifeMonths") != null ? Integer.parseInt(input.get("shelfLifeMonths").toString()) : null
+                Integer.parseInt(input.get("shelfLifeMonths").toString())
         );
         return medicationService.createMedication(request);
     }
 
     @DgsMutation
-    public MedicationResponse updateMedication(@InputArgument Long id,
-                                               @InputArgument("input") Map<String, String> input) {
+    public MedicationResponse updateMedication(@InputArgument Long id, @InputArgument("input") Map<String, Object> input) {
         UpdateMedicationRequest request = new UpdateMedicationRequest(
-                input.get("name"),
-                input.get("inn"),
-                input.get("atcCode"),
-                input.get("storageConditions"),
-                input.get("shelfLifeMonths") != null ? Integer.parseInt(input.get("shelfLifeMonths")) : null
+                (String) input.get("name"),
+                (String) input.get("inn"),
+                (String) input.get("atcCode"),
+                (String) input.get("dosageForm"),
+                new BigDecimal(input.get("dosage").toString()),
+                (String) input.get("unit"),
+                Boolean.parseBoolean(input.get("prescriptionRequired").toString()),
+                (String) input.get("storageConditions"),
+                Integer.parseInt(input.get("shelfLifeMonths").toString())
         );
         return medicationService.updateMedication(id, request);
     }
