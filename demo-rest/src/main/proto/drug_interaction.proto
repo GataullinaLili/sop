@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "grpc.demo";
+
+service DrugInteractionService {
+  rpc CheckDrugInteraction (DrugInteractionRequest) returns (DrugInteractionResponse) {}
+}
+
+message DrugInteractionRequest {
+  int64 drug_id = 1;
+  string drug_name = 2;
+  repeated string concurrent_drugs = 3;
+  int32 patient_age = 4;
+  string patient_condition = 5;
+}
+
+message DrugInteractionResponse {
+  int64 drug_id = 1;
+  string drug_name = 2;
+  int32 risk_level = 3;
+  repeated string contraindications = 4;
+  repeated string warnings = 5;
+  string recommendation = 6;
+  string severity = 7;
+  string interaction_details = 8;
+}

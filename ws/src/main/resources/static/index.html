@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Уведомления о лекарствах</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 1200px;
+            overflow: hidden;
+            display: flex;
+            min-height: 90vh;
+        }
+
+        .sidebar {
+            width: 300px;
+            background: #f8f9fa;
+            border-right: 1px solid #dee2e6;
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #dc3545;
+        }
+
+        .status-indicator.connected {
+            background: #28a745;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid #dee2e6;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .messages-container {
+            flex: 1;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 1px solid #dee2e6;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .messages-header {
+            background: #667eea;
+            color: white;
+            padding: 15px 20px;
+            font-weight: 500;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .message {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            border-left: 4px solid #667eea;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.critical {
+            border-left-color: #dc3545;
+            background: #fff5f5;
+        }
+
+        .message.warning {
+            border-left-color: #ffc107;
+            background: #fff9e6;
+        }
+
+        .message.info {
+            border-left-color: #17a2b8;
+            background: #f0f9ff;
+        }
+
+        .message-time {
+            font-size: 11px;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+
+        .message-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #343a40;
+        }
+
+        .message-content {
+            font-size: 14px;
+            color: #495057;
+            line-height: 1.4;
+        }
+
+        .subscriptions {
+            margin-top: 20px;
+        }
+
+        .subscription-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #dee2e6;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .subscription-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+        }
+
+        .subscription-item.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #e9ecef;
+            color: #495057;
+        }
+
+        .btn-secondary:hover {
+            background: #dee2e6;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        h1 {
+            color: white;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #343a40;
+            margin-bottom: 30px;
+        }
+
+        .logo-icon {
+            font-size: 28px;
+        }
+    </style>
+</head>
+<body>
+<h1>💊 Система уведомлений о лекарствах</h1>
+
+<div class="container">
+    <div class="sidebar">
+        <div class="logo">
+            <span class="logo-icon">💊</span>
+            <span>MedNotifications</span>
+        </div>
+
+        <div class="status">
+            <div class="status-indicator" id="statusIndicator"></div>
+            <span id="statusText">Подключение...</span>
+        </div>
+
+        <div class="subscriptions">
+            <h3>Подписки на уведомления</h3>
+            <div id="subscriptionsList"></div>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-secondary" onclick="sendTestNotification()">
+                📨 Тестовое уведомление
+            </button>
+            <button class="btn btn-danger" onclick="clearMessages()">
+                🗑️ Очистить уведомления
+            </button>
+            <button class="btn btn-primary" onclick="getStats()">
+                📊 Статистика
+            </button>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <h2>📋 Уведомления в реальном времени</h2>
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="connectionCount">0</div>
+                    <div class="stat-label">Активных подключений</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="messageCount">0</div>
+                    <div class="stat-label">Всего уведомлений</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="criticalCount">0</div>
+                    <div class="stat-label">Критических</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="messages-container">
+            <div class="messages-header">
+                <span>Последние уведомления</span>
+                <span id="lastUpdate">--:--:--</span>
+            </div>
+            <div id="messages"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let socket = null;
+    let reconnectAttempts = 0;
+    let reconnectTimer = null;
+    const MAX_RECONNECT_DELAY = 30000;
+    let messageCount = 0;
+    let criticalCount = 0;
+
+    // Типы подписок
+    const subscriptionTypes = [
+        { id: 'all', name: 'Все уведомления', icon: '📋' },
+        { id: 'medication-created', name: 'Новые лекарства', icon: '💊' },
+        { id: 'medication-updated', name: 'Обновления', icon: '✏️' },
+        { id: 'medication-deleted', name: 'Удаления', icon: '🗑️' },
+        { id: 'drug-interaction', name: 'Взаимодействия', icon: '⚠️' },
+        { id: 'critical-alerts', name: 'Критические', icon: '🚨' }
+    ];
+
+    // Активные подписки
+    let activeSubscriptions = new Set(['all']);
+
+    function connect() {
+        if (socket && socket.readyState === WebSocket.CONNECTING) {
+            return;
+        }
+
+        if (reconnectTimer) {
+            clearTimeout(reconnectTimer);
+            reconnectTimer = null;
+        }
+
+        // Используем текущий протокол
+        const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${protocol}//${window.location.host}/notifications/ws/medications/notifications/ws`;
+
+        socket = new WebSocket(wsUrl);
+
+        socket.onopen = function() {
+            reconnectAttempts = 0;
+            updateStatus('connected', 'Подключено');
+            updateLastUpdate();
+
+            // Восстанавливаем подписки
+            activeSubscriptions.forEach(type => {
+                subscribe(type);
+            });
+
+            log('Соединение с сервером уведомлений установлено', 'system');
+        };
+
+        socket.onmessage = function(event) {
+            try {
+                const data = JSON.parse(event.data);
+                handleNotification(data);
+                updateLastUpdate();
+            } catch (e) {
+                console.log('Сообщение:', event.data);
+            }
+        };
+
+        socket.onclose = function(event) {
+            updateStatus('disconnected', 'Отключено');
+
+            const reason = event.wasClean
+                ? `код: ${event.code}, причина: ${event.reason}`
+                : 'обрыв соединения';
+
+            log(`Соединение закрыто: ${reason}`, 'system');
+            scheduleReconnect();
+        };
+
+        socket.onerror = function() {
+            log('Ошибка соединения с сервером', 'system');
+        };
+    }
+
+    function subscribe(type) {
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify({
+                action: 'subscribe',
+                type: type
+            }));
+
+            activeSubscriptions.add(type);
+            updateSubscriptionsUI();
+            log(`Подписан на: ${type}`, 'system');
+        }
+    }
+
+    function unsubscribe(type) {
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify({
+                action: 'unsubscribe',
+                type: type
+            }));
+
+            activeSubscriptions.delete(type);
+            updateSubscriptionsUI();
+            log(`Отписан от: ${type}`, 'system');
+        }
+    }
+
+    function toggleSubscription(type) {
+        if (activeSubscriptions.has(type)) {
+            unsubscribe(type);
+        } else {
+            subscribe(type);
+        }
+    }
+
+    function handleNotification(data) {
+        messageCount++;
+        document.getElementById('messageCount').textContent = messageCount;
+
+        // Определяем тип сообщения для стилизации
+        let messageClass = 'message';
+        if (data.type === 'critical-alerts' || data.severity === 'HIGH') {
+            messageClass += ' critical';
+            criticalCount++;
+            document.getElementById('criticalCount').textContent = criticalCount;
+        } else if (data.severity === 'MEDIUM') {
+            messageClass += ' warning';
+        } else {
+            messageClass += ' info';
+        }
+
+        // Форматируем время
+        const time = data.timestamp ? data.timestamp.split('T')[1]?.substring(0, 8) : new Date().toLocaleTimeString();
+
+        // Создаем HTML для уведомления
+        const messageDiv = document.createElement('div');
+        messageDiv.className = messageClass;
+        messageDiv.innerHTML = `
+                <div class="message-time">${time}</div>
+                <div class="message-title">${getNotificationIcon(data.type)} ${data.title || data.message}</div>
+                <div class="message-content">${data.description || data.recommendation || ''}</div>
+                ${data.riskInfo ? `<div class="message-content"><small>${data.riskInfo}</small></div>` : ''}
+            `;
+
+        // Добавляем уведомление в начало списка
+        const messagesContainer = document.getElementById('messages');
+        messagesContainer.insertBefore(messageDiv, messagesContainer.firstChild);
+
+        // Ограничиваем количество сообщений
+        if (messagesContainer.children.length > 50) {
+            messagesContainer.removeChild(messagesContainer.lastChild);
+        }
+
+        // Проигрываем звук для критических уведомлений
+        if (data.type === 'critical-alerts' || data.severity === 'HIGH') {
+            playAlertSound();
+        }
+    }
+
+    function getNotificationIcon(type) {
+        const icons = {
+            'medication-created': '💊',
+            'medication-updated': '✏️',
+            'medication-deleted': '🗑️',
+            'drug-interaction': '⚠️',
+            'critical-alerts': '🚨',
+            'system': 'ℹ️',
+            'info': '📝'
+        };
+        return icons[type] || '📋';
+    }
+
+    function playAlertSound() {
+        // Создаем простой звуковой сигнал
+        try {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.frequency.value = 800;
+            oscillator.type = 'sine';
+
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.5);
+        } catch (e) {
+            console.log('Звук недоступен');
+        }
+    }
+
+    function updateStatus(status, text) {
+        const indicator = document.getElementById('statusIndicator');
+        const statusText = document.getElementById('statusText');
+
+        indicator.className = 'status-indicator ' + status;
+        statusText.textContent = text;
+    }
+
+    function updateLastUpdate() {
+        document.getElementById('lastUpdate').textContent =
+            new Date().toLocaleTimeString();
+    }
+
+    function updateSubscriptionsUI() {
+        const container = document.getElementById('subscriptionsList');
+        container.innerHTML = '';
+
+        subscriptionTypes.forEach(type => {
+            const isActive = activeSubscriptions.has(type.id);
+            const item = document.createElement('div');
+            item.className = `subscription-item ${isActive ? 'active' : ''}`;
+            item.innerHTML = `
+                    <span>${type.icon} ${type.name}</span>
+                    <input type="checkbox" ${isActive ? 'checked' : ''}>
+                `;
+
+            item.onclick = (e) => {
+                if (e.target.tagName !== 'INPUT') {
+                    toggleSubscription(type.id);
+                }
+            };
+
+            container.appendChild(item);
+        });
+    }
+
+    function scheduleReconnect() {
+        const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), MAX_RECONNECT_DELAY);
+        reconnectAttempts++;
+
+        log(`Переподключение через ${delay/1000} сек (попытка ${reconnectAttempts})...`, 'system');
+        reconnectTimer = setTimeout(connect, delay);
+    }
+
+    function log(message, type = 'system') {
+        handleNotification({
+            type: type,
+            message: message,
+            timestamp: new Date().toISOString()
+        });
+    }
+
+    function sendTestNotification() {
+        fetch('/notifications/api/notifications/broadcast', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                message: 'Тестовое уведомление от системы',
+                type: 'info'
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                log(`Тестовое уведомление отправлено (получено: ${data.sentTo})`, 'system');
+            })
+            .catch(error => {
+                log(`Ошибка отправки: ${error.message}`, 'system');
+            });
+    }
+
+    function clearMessages() {
+        document.getElementById('messages').innerHTML = '';
+        messageCount = 0;
+        criticalCount = 0;
+        document.getElementById('messageCount').textContent = '0';
+        document.getElementById('criticalCount').textContent = '0';
+        log('Все уведомления очищены', 'system');
+    }
+
+    function getStats() {
+        fetch('/notifications/api/notifications/stats')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('connectionCount').textContent =
+                    data.activeConnections || 0;
+
+                log(`Статистика: ${data.activeConnections} активных подключений`, 'system');
+            })
+            .catch(error => {
+                log(`Ошибка получения статистики: ${error.message}`, 'system');
+            });
+    }
+
+    // Инициализация при загрузке страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        updateSubscriptionsUI();
+        connect();
+        getStats();
+
+        // Периодическая проверка соединения
+        setInterval(() => {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({ action: 'ping' }));
+            }
+        }, 30000);
+    });
+</script>
+</body>
+</html>

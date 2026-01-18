@@ -1,0 +1,164 @@
+type Manufacturer {
+    id: ID!
+    name: String!
+    country: String!
+    licenseNumber: String!
+    contactEmail: String!
+}
+
+type Medication {
+    id: ID!
+    name: String!
+    inn: String!
+    atcCode: String
+    dosageForm: String!
+    dosage: Float!
+    unit: String!
+    manufacturer: Manufacturer!
+    prescriptionRequired: Boolean!
+    storageConditions: String
+    shelfLifeMonths: Int
+    createdAt: String!
+}
+
+type MedicationPage {
+    content: [Medication!]!
+    pageNumber: Int!
+    pageSize: Int!
+    totalElements: Int!
+    totalPages: Int!
+    last: Boolean!
+}
+
+type DrugInteractionResult {
+    drugId: ID!
+    drugName: String!
+    riskLevel: Int!
+    contraindications: [String!]!
+    warnings: [String!]!
+    recommendation: String!
+    severity: String!
+    interactionDetails: String
+}
+
+type MedicationStatistics {
+    totalMedications: Int!
+    prescriptionMedications: Int!
+    overTheCounterMedications: Int!
+    manufacturerDistribution: [ManufacturerStats!]!
+    dosageFormDistribution: [DosageFormStats!]!
+    calculatedAt: String!
+}
+
+type ManufacturerStats {
+    manufacturerName: String!
+    medicationCount: Int!
+}
+
+type DosageFormStats {
+    dosageForm: String!
+    medicationCount: Int!
+}
+
+type Query {
+    # Производители
+    manufacturers: [Manufacturer!]!
+    manufacturerById(id: ID!): Manufacturer
+
+    # Лекарства
+    medications(
+        manufacturerId: ID,
+        atcCode: String,
+        search: String,
+        page: Int = 0,
+        size: Int = 10
+    ): MedicationPage!
+
+    medicationById(id: ID!): Medication
+    medicationsByName(name: String!): [Medication!]!
+    medicationsByInn(inn: String!): [Medication!]!
+    prescriptionMedications: [Medication!]!
+    overTheCounterMedications: [Medication!]!
+    medicationsByDosageRange(minDosage: Float!, maxDosage: Float!): [Medication!]!
+    medicationsByShelfLife(minMonths: Int!, maxMonths: Int!): [Medication!]!
+    recentMedications(limit: Int = 10): [Medication!]!
+
+    # Проверка взаимодействий
+    checkDrugInteraction(
+        drugId: ID!,
+        drugName: String!,
+        concurrentDrugs: [String!],
+        patientAge: Int,
+        patientCondition: String
+    ): DrugInteractionResult!
+
+    # Статистика
+    medicationStatistics: MedicationStatistics!
+    medicationCountByManufacturer(manufacturerId: ID!): Int!
+}
+
+input ManufacturerInput {
+    name: String!
+    country: String!
+    licenseNumber: String!
+    contactEmail: String!
+}
+
+input UpdateManufacturerInput {
+    name: String!
+    country: String!
+    licenseNumber: String!
+    contactEmail: String!
+}
+
+input MedicationInput {
+    name: String!
+    inn: String!
+    atcCode: String
+    dosageForm: String!
+    dosage: Float!
+    unit: String!
+    manufacturerId: ID!
+    prescriptionRequired: Boolean!
+    storageConditions: String
+    shelfLifeMonths: Int
+}
+
+input UpdateMedicationInput {
+    name: String!
+    inn: String!
+    atcCode: String
+    storageConditions: String
+    shelfLifeMonths: Int
+}
+
+input MedicationSearchInput {
+    name: String
+    inn: String
+    manufacturerId: ID
+    prescriptionRequired: Boolean
+    dosageForm: String
+}
+
+type Mutation {
+    # Производители
+    createManufacturer(input: ManufacturerInput!): Manufacturer!
+    updateManufacturer(id: ID!, input: UpdateManufacturerInput!): Manufacturer!
+    deleteManufacturer(id: ID!): ID!
+
+    # Лекарства
+    createMedication(input: MedicationInput!): Medication!
+    updateMedication(id: ID!, input: UpdateMedicationInput!): Medication!
+    updateMedicationManufacturer(medicationId: ID!, manufacturerId: ID!): Medication!
+    updatePrescriptionStatus(id: ID!, prescriptionRequired: Boolean!): Medication!
+    deleteMedication(id: ID!): ID!
+
+    # Проверка взаимодействий
+    checkAndSaveDrugInteraction(
+        drugId: ID!,
+        drugName: String!,
+        concurrentDrugs: [String!],
+        patientAge: Int,
+        patientCondition: String
+    ): DrugInteractionResult!
+}

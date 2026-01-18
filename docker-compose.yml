@@ -1,0 +1,110 @@
+version: '3.8'
+services:
+  # Инфраструктура: RabbitMQ
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: rabbitmq-1
+    hostname: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Инфраструктура: Zipkin для трейсинга
+  zipkin:
+    image: openzipkin/zipkin
+    container_name: zipkin-1
+    ports:
+      - "9411:9411"
+
+  # Инфраструктура: Prometheus для мониторинга
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus-1
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+
+  # Микросервис: Уведомления (WebSocket)
+  notification-service:
+    build: ./ws
+    container_name: notification-service-1
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=guest
+      - SPRING_RABBITMQ_PASSWORD=guest
+      - SERVER_PORT=8083
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  # Микросервис: Demo REST API
+  demo-rest:
+    build: ./demo-rest
+    container_name: demo-rest-1
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SERVER_PORT=8081
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  # Микросервис: Аудит
+  audit-service:
+    build: ./audit-service
+    container_name: audit-service-1  # Добавлено
+    ports:
+      - "8082:8082"  # Добавлено
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker  # Добавлено
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672  # Добавлено
+      - SPRING_RABBITMQ_USERNAME=guest  # Добавлено
+      - SPRING_RABBITMQ_PASSWORD=guest  # Добавлено
+      - SERVER_PORT=8082
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  # Микросервис: Аналитика
+  analitics-service:
+    build: ./analytics-service  
+    container_name: analytics-service-1
+    ports:
+      - "8084:8084"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=guest
+      - SPRING_RABBITMQ_PASSWORD=guest
+      - SERVER_PORT=8084
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+volumes:
+  rabbitmq_data:
+  prometheus_data:
