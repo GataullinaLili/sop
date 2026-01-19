@@ -10,7 +10,6 @@ COPY ${JAR_FILE} app.jar
 RUN chown javauser:javauser /app/app.jar
 USER javauser
 
-# Порт gRPC
-EXPOSE 9090
+EXPOSE 8085 9099
 
 ENTRYPOINT ["java", "-jar", "app.jar"]

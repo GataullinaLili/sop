@@ -2,372 +2,437 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Уведомления о лекарствах</title>
+    <title>Управление препаратами аптеки</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            background-color: #f5f8fa;
         }
 
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+        h2 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
         }
 
         .container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            width: 100%;
-            max-width: 1200px;
-            overflow: hidden;
             display: flex;
-            min-height: 90vh;
-        }
-
-        .sidebar {
-            width: 300px;
-            background: #f8f9fa;
-            border-right: 1px solid #dee2e6;
-            padding: 30px 20px;
-            display: flex;
-            flex-direction: column;
             gap: 20px;
-        }
-
-        .main-content {
-            flex: 1;
-            padding: 30px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .status {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .status-indicator {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: #dc3545;
-        }
-
-        .status-indicator.connected {
-            background: #28a745;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
-
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .stat-card {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 15px;
-            text-align: center;
-            border: 1px solid #dee2e6;
-        }
-
-        .stat-value {
-            font-size: 24px;
-            font-weight: bold;
-            color: #667eea;
-        }
-
-        .stat-label {
-            font-size: 12px;
-            color: #6c757d;
-            margin-top: 5px;
-        }
-
-        .messages-container {
-            flex: 1;
-            background: #f8f9fa;
-            border-radius: 10px;
-            border: 1px solid #dee2e6;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .messages-header {
-            background: #667eea;
-            color: white;
-            padding: 15px 20px;
-            font-weight: 500;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        #messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .message {
-            background: white;
-            border-radius: 10px;
-            padding: 15px;
-            border-left: 4px solid #667eea;
-            animation: slideIn 0.3s ease;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .message.critical {
-            border-left-color: #dc3545;
-            background: #fff5f5;
-        }
-
-        .message.warning {
-            border-left-color: #ffc107;
-            background: #fff9e6;
-        }
-
-        .message.info {
-            border-left-color: #17a2b8;
-            background: #f0f9ff;
-        }
-
-        .message-time {
-            font-size: 11px;
-            color: #6c757d;
-            margin-bottom: 5px;
-        }
-
-        .message-title {
-            font-weight: 600;
-            margin-bottom: 5px;
-            color: #343a40;
-        }
-
-        .message-content {
-            font-size: 14px;
-            color: #495057;
-            line-height: 1.4;
-        }
-
-        .subscriptions {
             margin-top: 20px;
         }
 
-        .subscription-item {
+        .left-panel {
+            flex: 1;
+            min-width: 400px;
+        }
+
+        .right-panel {
+            flex: 1;
+            min-width: 500px;
+        }
+
+        .panel {
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        #status {
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            text-align: center;
+            border: 1px solid;
+            background-color: #fff;
+            font-size: 16px;
+        }
+
+        .connected {
+            color: #155724;
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+
+        .disconnected {
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+
+        #messages {
+            border: 1px solid #ddd;
+            padding: 15px;
+            height: 500px;
+            overflow-y: auto;
+            background-color: white;
+            border-radius: 5px;
+        }
+
+        .log {
+            color: #6c757d;
+            font-size: 0.9em;
+            margin: 8px 0;
+            padding: 8px;
+            border-left: 3px solid #6c757d;
+            padding-left: 10px;
+        }
+
+        .result-add {
+            color: #27ae60;
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #e8f8ef;
+            border-left: 4px solid #27ae60;
+            border-radius: 0 4px 4px 0;
+            padding-left: 15px;
+        }
+
+        .result-remove {
+            color: #e74c3c;
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #fdedec;
+            border-left: 4px solid #e74c3c;
+            border-radius: 0 4px 4px 0;
+            padding-left: 15px;
+        }
+
+        .result-update {
+            color: #f39c12;
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #fef5e7;
+            border-left: 4px solid #f39c12;
+            border-radius: 0 4px 4px 0;
+            padding-left: 15px;
+        }
+
+        .result-stock {
+            color: #3498db;
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #e8f4fd;
+            border-left: 4px solid #3498db;
+            border-radius: 0 4px 4px 0;
+            padding-left: 15px;
+        }
+
+        .connection-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        button {
+            padding: 10px 15px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+            flex: 1;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+
+        .btn-add {
+            background-color: #27ae60;
+        }
+
+        .btn-add:hover {
+            background-color: #219653;
+        }
+
+        .btn-remove {
+            background-color: #e74c3c;
+        }
+
+        .btn-remove:hover {
+            background-color: #c0392b;
+        }
+
+        .btn-update {
+            background-color: #f39c12;
+        }
+
+        .btn-update:hover {
+            background-color: #d68910;
+        }
+
+        .btn-stock {
+            background-color: #9b59b6;
+        }
+
+        .btn-stock:hover {
+            background-color: #8e44ad;
+        }
+
+        .operation-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .operation-buttons button {
+            height: 50px;
+            font-weight: 500;
+        }
+
+        .stock-summary {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+            margin-bottom: 20px;
+        }
+
+        .stock-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+        }
+
+        .stock-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .stat-item {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #e9ecef;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2c3e50;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stock-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            background: white;
+        }
+
+        .stock-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 10px 15px;
-            background: white;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            border: 1px solid #dee2e6;
-            cursor: pointer;
-            transition: all 0.2s;
+            border-bottom: 1px solid #e9ecef;
         }
 
-        .subscription-item:hover {
-            transform: translateX(5px);
-            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+        .stock-item:last-child {
+            border-bottom: none;
         }
 
-        .subscription-item.active {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
-        }
-
-        .controls {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .btn {
-            padding: 12px 20px;
-            border: none;
-            border-radius: 8px;
+        .stock-name {
             font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 14px;
+            color: #2c3e50;
+            flex: 1;
         }
 
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #5a67d8;
-            transform: translateY(-2px);
-        }
-
-        .btn-secondary {
-            background: #e9ecef;
-            color: #495057;
-        }
-
-        .btn-secondary:hover {
-            background: #dee2e6;
-        }
-
-        .btn-danger {
-            background: #dc3545;
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #c82333;
-        }
-
-        h1 {
-            color: white;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 24px;
+        .stock-quantity {
             font-weight: bold;
-            color: #343a40;
-            margin-bottom: 30px;
+            color: #2c3e50;
+            margin-left: 10px;
         }
 
-        .logo-icon {
-            font-size: 28px;
+        .low-stock {
+            color: #e74c3c;
+        }
+
+        .normal-stock {
+            color: #27ae60;
+        }
+
+        .timestamp {
+            float: right;
+            font-size: 0.8em;
+            color: #7f8c8d;
+            font-family: monospace;
+        }
+
+        .operation-id {
+            display: block;
+            font-size: 0.75em;
+            color: #95a5a6;
+            font-family: monospace;
+            margin-top: 5px;
+        }
+
+        .medication-details {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(0,0,0,0.1);
+            font-size: 0.85em;
+            color: #555;
+        }
+
+        .detail-row {
+            margin: 3px 0;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #495057;
+            display: inline-block;
+            width: 120px;
+        }
+
+        @media (max-width: 1000px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .left-panel, .right-panel {
+                min-width: 100%;
+            }
+
+            .operation-buttons {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-<h1>💊 Система уведомлений о лекарствах</h1>
+<h2>Управление препаратами аптеки</h2>
+<div id="status">Статус: Отключено</div>
 
 <div class="container">
-    <div class="sidebar">
-        <div class="logo">
-            <span class="logo-icon">💊</span>
-            <span>MedNotifications</span>
+    <!-- Левая панель: Информация о складе и кнопки управления -->
+    <div class="left-panel">
+        <div class="panel">
+            <h3>Подключение к серверу</h3>
+            <div class="connection-controls">
+                <button id="connectBtn" onclick="connect()">Подключиться</button>
+                <button id="disconnectBtn" onclick="disconnect()" disabled>Отключиться</button>
+                <button onclick="sendPing()">PING</button>
+            </div>
         </div>
 
-        <div class="status">
-            <div class="status-indicator" id="statusIndicator"></div>
-            <span id="statusText">Подключение...</span>
+        <div class="panel">
+            <h3>Информация о складе</h3>
+            <div class="stock-summary" id="stockSummary" style="display: none;">
+                <div class="stock-header">
+                    <h4 style="margin: 0;">Текущее состояние</h4>
+                    <button onclick="getStockInfo()" class="btn-stock" style="width: auto; padding: 5px 15px;">Обновить</button>
+                </div>
+
+                <div class="stock-stats">
+                    <div class="stat-item">
+                        <span class="stat-value" id="totalMedications">0</span>
+                        <span class="stat-label">Препаратов</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="totalUnits">0</span>
+                        <span class="stat-label">Всего единиц</span>
+                    </div>
+                </div>
+
+                <div class="stock-list" id="stockList">
+                    <div style="text-align: center; padding: 30px; color: #6c757d;">
+                        Информация о складе загружается...
+                    </div>
+                </div>
+            </div>
+            <div id="emptyStock" style="text-align: center; padding: 30px; color: #6c757d;">
+                Подключитесь к серверу для получения информации о складе
+            </div>
         </div>
 
-        <div class="subscriptions">
-            <h3>Подписки на уведомления</h3>
-            <div id="subscriptionsList"></div>
-        </div>
-
-        <div class="controls">
-            <button class="btn btn-secondary" onclick="sendTestNotification()">
-                📨 Тестовое уведомление
-            </button>
-            <button class="btn btn-danger" onclick="clearMessages()">
-                🗑️ Очистить уведомления
-            </button>
-            <button class="btn btn-primary" onclick="getStats()">
-                📊 Статистика
-            </button>
+        <div class="panel">
+            <h3>Операции с препаратами</h3>
+            <div class="operation-buttons">
+                <button onclick="addRandomMedication()" class="btn-add">Добавить препарат</button>
+                <button onclick="removeRandomMedication()" class="btn-remove">Удалить препарат</button>
+                <button onclick="updateRandomMedication()" class="btn-update">Обновить количество</button>
+                <button onclick="getStockInfo()" class="btn-stock">Запрос информации</button>
+            </div>
+            <div style="margin-top: 15px; font-size: 13px; color: #6c757d; text-align: center;">
+                Нажмите на кнопку для выполнения операции с случайным препаратом
+            </div>
         </div>
     </div>
 
-    <div class="main-content">
-        <div class="header">
-            <h2>📋 Уведомления в реальном времени</h2>
-            <div class="stats">
-                <div class="stat-card">
-                    <div class="stat-value" id="connectionCount">0</div>
-                    <div class="stat-label">Активных подключений</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="messageCount">0</div>
-                    <div class="stat-label">Всего уведомлений</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="criticalCount">0</div>
-                    <div class="stat-label">Критических</div>
+    <!-- Правая панель: Результаты операций -->
+    <div class="right-panel">
+        <div class="panel">
+            <h3>Результаты операций</h3>
+            <div id="messages">
+                <div style="text-align: center; padding: 50px; color: #6c757d;">
+                    Здесь будут отображаться результаты операций с препаратами
                 </div>
             </div>
-        </div>
-
-        <div class="messages-container">
-            <div class="messages-header">
-                <span>Последние уведомления</span>
-                <span id="lastUpdate">--:--:--</span>
-            </div>
-            <div id="messages"></div>
         </div>
     </div>
 </div>
 
 <script>
+    // Элементы DOM
+    const statusDiv = document.getElementById('status');
+    const messagesDiv = document.getElementById('messages');
+    const connectBtn = document.getElementById('connectBtn');
+    const disconnectBtn = document.getElementById('disconnectBtn');
+    const stockSummary = document.getElementById('stockSummary');
+    const emptyStock = document.getElementById('emptyStock');
+    const stockList = document.getElementById('stockList');
+    const totalMedicationsSpan = document.getElementById('totalMedications');
+    const totalUnitsSpan = document.getElementById('totalUnits');
+
     let socket = null;
     let reconnectAttempts = 0;
     let reconnectTimer = null;
     const MAX_RECONNECT_DELAY = 30000;
-    let messageCount = 0;
-    let criticalCount = 0;
 
-    // Типы подписок
-    const subscriptionTypes = [
-        { id: 'all', name: 'Все уведомления', icon: '📋' },
-        { id: 'medication-created', name: 'Новые лекарства', icon: '💊' },
-        { id: 'medication-updated', name: 'Обновления', icon: '✏️' },
-        { id: 'medication-deleted', name: 'Удаления', icon: '🗑️' },
-        { id: 'drug-interaction', name: 'Взаимодействия', icon: '⚠️' },
-        { id: 'critical-alerts', name: 'Критические', icon: '🚨' }
+    // Хранилище текущего состояния склада
+    let currentStock = {};
+    let operationCounter = 0;
+
+    // Список препаратов для тестирования
+    const medications = [
+        "Парацетамол", "Ибупрофен", "Аспирин", "Амоксициллин", "Метформин",
+        "Аторвастатин", "Левотироксин", "Лизиноприл", "Метопролол", "Симвастатин",
+        "Омепразол", "Лозартан", "Глибенкламид", "Цетиризин", "Дексаметазон"
     ];
-
-    // Активные подписки
-    let activeSubscriptions = new Set(['all']);
 
     function connect() {
         if (socket && socket.readyState === WebSocket.CONNECTING) {
@@ -379,273 +444,443 @@
             reconnectTimer = null;
         }
 
-        // Используем текущий протокол
         const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsUrl = `${protocol}//${window.location.host}/notifications/ws/medications/notifications/ws`;
-
-        socket = new WebSocket(wsUrl);
+        socket = new WebSocket(`${protocol}//localhost:8088/ws/notifications`);
 
         socket.onopen = function() {
             reconnectAttempts = 0;
-            updateStatus('connected', 'Подключено');
-            updateLastUpdate();
+            statusDiv.textContent = 'Статус: Подключено';
+            statusDiv.className = 'connected';
+            connectBtn.disabled = true;
+            disconnectBtn.disabled = false;
+            log('Соединение с сервером уведомлений установлено');
 
-            // Восстанавливаем подписки
-            activeSubscriptions.forEach(type => {
-                subscribe(type);
-            });
-
-            log('Соединение с сервером уведомлений установлено', 'system');
+            // Запрашиваем информацию о текущем складе
+            setTimeout(() => {
+                getStockInfo();
+                sendPing();
+            }, 1000);
         };
 
         socket.onmessage = function(event) {
             try {
                 const data = JSON.parse(event.data);
-                handleNotification(data);
-                updateLastUpdate();
+                processServerMessage(data);
             } catch (e) {
-                console.log('Сообщение:', event.data);
+                log('Получено: ' + event.data);
             }
         };
 
         socket.onclose = function(event) {
-            updateStatus('disconnected', 'Отключено');
+            statusDiv.textContent = 'Статус: Отключено';
+            statusDiv.className = 'disconnected';
+            connectBtn.disabled = false;
+            disconnectBtn.disabled = true;
 
             const reason = event.wasClean
-                ? `код: ${event.code}, причина: ${event.reason}`
+                ? `закрыто чисто, код=${event.code}`
                 : 'обрыв соединения';
+            log('Отключение: ' + reason);
 
-            log(`Соединение закрыто: ${reason}`, 'system');
             scheduleReconnect();
         };
 
         socket.onerror = function() {
-            log('Ошибка соединения с сервером', 'system');
+            log('Ошибка соединения');
         };
     }
 
-    function subscribe(type) {
-        if (socket && socket.readyState === WebSocket.OPEN) {
-            socket.send(JSON.stringify({
-                action: 'subscribe',
-                type: type
-            }));
-
-            activeSubscriptions.add(type);
-            updateSubscriptionsUI();
-            log(`Подписан на: ${type}`, 'system');
+    function disconnect() {
+        if (socket) {
+            socket.close(1000, "Пользователь отключился");
+            socket = null;
         }
-    }
-
-    function unsubscribe(type) {
-        if (socket && socket.readyState === WebSocket.OPEN) {
-            socket.send(JSON.stringify({
-                action: 'unsubscribe',
-                type: type
-            }));
-
-            activeSubscriptions.delete(type);
-            updateSubscriptionsUI();
-            log(`Отписан от: ${type}`, 'system');
-        }
-    }
-
-    function toggleSubscription(type) {
-        if (activeSubscriptions.has(type)) {
-            unsubscribe(type);
-        } else {
-            subscribe(type);
-        }
-    }
-
-    function handleNotification(data) {
-        messageCount++;
-        document.getElementById('messageCount').textContent = messageCount;
-
-        // Определяем тип сообщения для стилизации
-        let messageClass = 'message';
-        if (data.type === 'critical-alerts' || data.severity === 'HIGH') {
-            messageClass += ' critical';
-            criticalCount++;
-            document.getElementById('criticalCount').textContent = criticalCount;
-        } else if (data.severity === 'MEDIUM') {
-            messageClass += ' warning';
-        } else {
-            messageClass += ' info';
-        }
-
-        // Форматируем время
-        const time = data.timestamp ? data.timestamp.split('T')[1]?.substring(0, 8) : new Date().toLocaleTimeString();
-
-        // Создаем HTML для уведомления
-        const messageDiv = document.createElement('div');
-        messageDiv.className = messageClass;
-        messageDiv.innerHTML = `
-                <div class="message-time">${time}</div>
-                <div class="message-title">${getNotificationIcon(data.type)} ${data.title || data.message}</div>
-                <div class="message-content">${data.description || data.recommendation || ''}</div>
-                ${data.riskInfo ? `<div class="message-content"><small>${data.riskInfo}</small></div>` : ''}
-            `;
-
-        // Добавляем уведомление в начало списка
-        const messagesContainer = document.getElementById('messages');
-        messagesContainer.insertBefore(messageDiv, messagesContainer.firstChild);
-
-        // Ограничиваем количество сообщений
-        if (messagesContainer.children.length > 50) {
-            messagesContainer.removeChild(messagesContainer.lastChild);
-        }
-
-        // Проигрываем звук для критических уведомлений
-        if (data.type === 'critical-alerts' || data.severity === 'HIGH') {
-            playAlertSound();
-        }
-    }
-
-    function getNotificationIcon(type) {
-        const icons = {
-            'medication-created': '💊',
-            'medication-updated': '✏️',
-            'medication-deleted': '🗑️',
-            'drug-interaction': '⚠️',
-            'critical-alerts': '🚨',
-            'system': 'ℹ️',
-            'info': '📝'
-        };
-        return icons[type] || '📋';
-    }
-
-    function playAlertSound() {
-        // Создаем простой звуковой сигнал
-        try {
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-
-            oscillator.frequency.value = 800;
-            oscillator.type = 'sine';
-
-            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + 0.5);
-        } catch (e) {
-            console.log('Звук недоступен');
-        }
-    }
-
-    function updateStatus(status, text) {
-        const indicator = document.getElementById('statusIndicator');
-        const statusText = document.getElementById('statusText');
-
-        indicator.className = 'status-indicator ' + status;
-        statusText.textContent = text;
-    }
-
-    function updateLastUpdate() {
-        document.getElementById('lastUpdate').textContent =
-            new Date().toLocaleTimeString();
-    }
-
-    function updateSubscriptionsUI() {
-        const container = document.getElementById('subscriptionsList');
-        container.innerHTML = '';
-
-        subscriptionTypes.forEach(type => {
-            const isActive = activeSubscriptions.has(type.id);
-            const item = document.createElement('div');
-            item.className = `subscription-item ${isActive ? 'active' : ''}`;
-            item.innerHTML = `
-                    <span>${type.icon} ${type.name}</span>
-                    <input type="checkbox" ${isActive ? 'checked' : ''}>
-                `;
-
-            item.onclick = (e) => {
-                if (e.target.tagName !== 'INPUT') {
-                    toggleSubscription(type.id);
-                }
-            };
-
-            container.appendChild(item);
-        });
+        statusDiv.textContent = 'Статус: Отключено';
+        statusDiv.className = 'disconnected';
+        connectBtn.disabled = false;
+        disconnectBtn.disabled = true;
+        log('Отключение от сервера');
     }
 
     function scheduleReconnect() {
         const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), MAX_RECONNECT_DELAY);
         reconnectAttempts++;
 
-        log(`Переподключение через ${delay/1000} сек (попытка ${reconnectAttempts})...`, 'system');
+        log('Переподключение через ' + (delay/1000) + ' сек (попытка ' + reconnectAttempts + ')');
         reconnectTimer = setTimeout(connect, delay);
     }
 
-    function log(message, type = 'system') {
-        handleNotification({
-            type: type,
-            message: message,
-            timestamp: new Date().toISOString()
-        });
+    function sendPing() {
+        if (!socket || socket.readyState !== WebSocket.OPEN) {
+            log('Нет активного соединения для отправки PING');
+            return;
+        }
+
+        const ping = {
+            type: 'PING',
+            timestamp: Date.now()
+        };
+        socket.send(JSON.stringify(ping));
+        log('Отправлен PING запрос');
     }
 
-    function sendTestNotification() {
-        fetch('/notifications/api/notifications/broadcast', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                message: 'Тестовое уведомление от системы',
-                type: 'info'
-            })
-        })
+    function getRandomMedication() {
+        return medications[Math.floor(Math.random() * medications.length)];
+    }
+
+    function addRandomMedication() {
+        if (!socket || socket.readyState !== WebSocket.OPEN) {
+            alert('Сначала подключитесь к серверу!');
+            return;
+        }
+
+        const medication = getRandomMedication();
+        operationCounter++;
+
+        const operation = {
+            type: 'MEDICATION_OPERATION',
+            operation: 'ADD',
+            name: medication,
+            timestamp: Date.now(),
+            operationId: 'ADD_' + operationCounter
+        };
+
+        socket.send(JSON.stringify(operation));
+        log('Отправлен запрос: Добавление препарата "' + medication + '"');
+
+        // Дополнительно отправляем через REST API
+        fetch(`http://localhost:8088/api/notifications/test/ADD`, {
+            method: 'POST'
+        }).catch(() => {});
+    }
+
+    function removeRandomMedication() {
+        if (!socket || socket.readyState !== WebSocket.OPEN) {
+            alert('Сначала подключитесь к серверу!');
+            return;
+        }
+
+        // Получаем случайный препарат из текущего склада, если есть
+        let medication;
+        const stockKeys = Object.keys(currentStock);
+
+        if (stockKeys.length > 0) {
+            medication = stockKeys[Math.floor(Math.random() * stockKeys.length)];
+        } else {
+            medication = getRandomMedication();
+            log('Склад пуст, будет удален тестовый препарат');
+        }
+
+        operationCounter++;
+
+        const operation = {
+            type: 'MEDICATION_OPERATION',
+            operation: 'REMOVE',
+            name: medication,
+            timestamp: Date.now(),
+            operationId: 'REMOVE_' + operationCounter
+        };
+
+        socket.send(JSON.stringify(operation));
+        log('Отправлен запрос: Удаление препарата "' + medication + '"');
+
+        // Дополнительно отправляем через REST API
+        fetch(`http://localhost:8088/api/notifications/test/REMOVE`, {
+            method: 'POST'
+        }).catch(() => {});
+    }
+
+    function updateRandomMedication() {
+        if (!socket || socket.readyState !== WebSocket.OPEN) {
+            alert('Сначала подключитесь к серверу!');
+            return;
+        }
+
+        // Получаем случайный препарат из текущего склада, если есть
+        let medication;
+        const stockKeys = Object.keys(currentStock);
+
+        if (stockKeys.length > 0) {
+            medication = stockKeys[Math.floor(Math.random() * stockKeys.length)];
+        } else {
+            medication = getRandomMedication();
+            log('Склад пуст, будет обновлен тестовый препарат');
+        }
+
+        operationCounter++;
+
+        const operation = {
+            type: 'MEDICATION_OPERATION',
+            operation: 'UPDATE',
+            name: medication,
+            timestamp: Date.now(),
+            operationId: 'UPDATE_' + operationCounter
+        };
+
+        socket.send(JSON.stringify(operation));
+        log('Отправлен запрос: Обновление препарата "' + medication + '"');
+
+        // Дополнительно отправляем через REST API
+        fetch(`http://localhost:8088/api/notifications/test/UPDATE`, {
+            method: 'POST'
+        }).catch(() => {});
+    }
+
+    function getStockInfo() {
+        if (!socket || socket.readyState !== WebSocket.OPEN) {
+            log('Нет активного соединения для запроса информации');
+            return;
+        }
+
+        const request = {
+            type: 'GET_STOCK_INFO',
+            timestamp: Date.now()
+        };
+
+        socket.send(JSON.stringify(request));
+        log('Запрос информации о складе');
+
+        // Дополнительно через REST API
+        fetch('http://localhost:8088/api/notifications/medication/list')
             .then(response => response.json())
             .then(data => {
-                log(`Тестовое уведомление отправлено (получено: ${data.sentTo})`, 'system');
+                if (data.stockDetails) {
+                    updateStockDisplay(data.stockDetails, data.totalUnits);
+                }
             })
-            .catch(error => {
-                log(`Ошибка отправки: ${error.message}`, 'system');
-            });
+            .catch(() => {});
     }
 
-    function clearMessages() {
-        document.getElementById('messages').innerHTML = '';
-        messageCount = 0;
-        criticalCount = 0;
-        document.getElementById('messageCount').textContent = '0';
-        document.getElementById('criticalCount').textContent = '0';
-        log('Все уведомления очищены', 'system');
-    }
+    function processServerMessage(data) {
+        const timestamp = new Date().toLocaleTimeString();
+        let className = 'result-stock';
+        let title = '';
+        let details = '';
+        let operationId = data.operationId || data.notificationType + '_' + Date.now();
 
-    function getStats() {
-        fetch('/notifications/api/notifications/stats')
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('connectionCount').textContent =
-                    data.activeConnections || 0;
+        // Обработка разных типов сообщений
+        if (data.notificationType) {
+            switch(data.notificationType) {
+                case 'NEW_MEDICATION':
+                    className = 'result-add';
+                    title = 'Добавлен новый препарат: ' + (data.name || 'Неизвестный препарат');
+                    details = `
+                        <div class="medication-details">
+                            <div class="detail-row"><span class="detail-label">МНН:</span> ${data.inn || 'Не указано'}</div>
+                            <div class="detail-row"><span class="detail-label">Код ATC:</span> ${data.atcCode || 'Не указан'}</div>
+                            <div class="detail-row"><span class="detail-label">Форма:</span> ${data.dosageForm || 'Не указана'}</div>
+                            <div class="detail-row"><span class="detail-label">Дозировка:</span> ${data.dosage || ''} ${data.unit || ''}</div>
+                            <div class="detail-row"><span class="detail-label">Производитель:</span> ${data.manufacturer || 'Не указан'}</div>
+                            <div class="detail-row"><span class="detail-label">Рецептурный:</span> ${data.prescriptionRequired ? 'Да' : 'Нет'}</div>
+                            <div class="detail-row"><span class="detail-label">Количество:</span> <strong>${data.quantity || 0} шт.</strong></div>
+                        </div>
+                    `;
 
-                log(`Статистика: ${data.activeConnections} активных подключений`, 'system');
-            })
-            .catch(error => {
-                log(`Ошибка получения статистики: ${error.message}`, 'system');
-            });
-    }
+                    // Обновляем локальное состояние
+                    if (data.name && data.quantity) {
+                        currentStock[data.name] = data.quantity;
+                        updateStockDisplay(currentStock);
+                    }
+                    break;
 
-    // Инициализация при загрузке страницы
-    document.addEventListener('DOMContentLoaded', function() {
-        updateSubscriptionsUI();
-        connect();
-        getStats();
+                case 'MEDICATION_UPDATED':
+                    className = 'result-update';
+                    title = 'Обновлен препарат: ' + (data.medicationName || 'Неизвестный препарат');
+                    details = `
+                        <div class="medication-details">
+                            <div class="detail-row"><span class="detail-label">Текущее количество:</span> <strong>${data.currentQuantity || 0} шт.</strong></div>
+                            <div class="detail-row"><span class="detail-label">Статус:</span> ${data.status === 'LOW_STOCK' ? 'Низкий остаток' : 'Нормальный'}</div>
+                            ${data.warning ? '<div class="detail-row"><span class="detail-label">Предупреждение:</span> ' + data.warning + '</div>' : ''}
+                        </div>
+                    `;
 
-        // Периодическая проверка соединения
-        setInterval(() => {
-            if (socket && socket.readyState === WebSocket.OPEN) {
-                socket.send(JSON.stringify({ action: 'ping' }));
+                    // Обновляем локальное состояние
+                    if (data.medicationName && data.currentQuantity !== undefined) {
+                        currentStock[data.medicationName] = data.currentQuantity;
+                        if (data.currentQuantity <= 0) {
+                            delete currentStock[data.medicationName];
+                        }
+                        updateStockDisplay(currentStock);
+                    }
+                    break;
+
+                case 'MEDICATION_REMOVED':
+                    className = 'result-remove';
+                    title = 'Удален препарат: ' + (data.medicationName || 'Неизвестный препарат');
+                    details = `<div class="medication-details">${data.message || 'Препарат полностью удален со склада'}</div>`;
+
+                    // Удаляем из локального состояния
+                    if (data.medicationName) {
+                        delete currentStock[data.medicationName];
+                        updateStockDisplay(currentStock);
+                    }
+                    break;
+
+                case 'STOCK_INFO':
+                    className = 'result-stock';
+                    title = 'Информация о складе';
+
+                    // Обновляем локальное состояние
+                    if (data.stockDetails) {
+                        currentStock = {...data.stockDetails};
+                        updateStockDisplay(currentStock, data.totalUnits);
+                        details = `<div class="medication-details">Всего препаратов: ${data.totalMedications || 0}, Всего единиц: ${data.totalUnits || 0}</div>`;
+                    }
+                    break;
+
+                default:
+                    title = data.notificationType || 'Уведомление';
+                    details = JSON.stringify(data);
             }
-        }, 30000);
+        } else if (data.type === 'PONG') {
+            className = 'log';
+            title = 'PONG получен';
+            if (data.serverTime) {
+                const latency = Date.now() - data.timestamp;
+                details = `<div class="medication-details">Задержка: ${latency} мс</div>`;
+            }
+        } else if (data.type === 'CONNECTION_ESTABLISHED') {
+            className = 'log';
+            title = data.message || 'Подключение установлено';
+            if (data.currentStock) {
+                currentStock = {...data.currentStock};
+                updateStockDisplay(currentStock);
+            }
+        } else if (data.type === 'MEDICATION_OPERATION_RESULT') {
+            const op = data.operation || 'операция';
+            const med = data.medicationName || 'препарат';
+            const status = data.status || 'UNKNOWN';
+
+            if (status === 'SUCCESS') {
+                className = op === 'ADD' ? 'result-add' :
+                    op === 'REMOVE' ? 'result-remove' : 'result-update';
+
+                const opName = op === 'ADD' ? 'Добавление' :
+                    op === 'REMOVE' ? 'Удаление' : 'Обновление';
+
+                title = opName + ': ' + med;
+
+                if (data.previousQuantity !== undefined && data.newQuantity !== undefined) {
+                    details = `
+                        <div class="medication-details">
+                            <div class="detail-row"><span class="detail-label">Было:</span> ${data.previousQuantity} шт.</div>
+                            <div class="detail-row"><span class="detail-label">Стало:</span> <strong>${data.newQuantity} шт.</strong></div>
+                            ${data.change ? '<div class="detail-row"><span class="detail-label">Изменение:</span> ' + (data.change > 0 ? '+' : '') + data.change + ' шт.</div>' : ''}
+                            ${data.note ? '<div class="detail-row"><span class="detail-label">Примечание:</span> ' + data.note + '</div>' : ''}
+                        </div>
+                    `;
+
+                    // Обновляем локальное состояние
+                    if (op === 'REMOVE' && data.newQuantity <= 0) {
+                        delete currentStock[med];
+                    } else if (med) {
+                        currentStock[med] = data.newQuantity;
+                    }
+                    updateStockDisplay(currentStock);
+                }
+            } else {
+                className = 'result-remove';
+                title = 'Ошибка ' + (op === 'ADD' ? 'добавления' : op === 'REMOVE' ? 'удаления' : 'обновления') + ': ' + med;
+                details = `<div class="medication-details">${data.message || 'Произошла ошибка'}</div>`;
+            }
+        } else {
+            className = 'log';
+            title = data.type || 'Сообщение';
+            details = data.message || JSON.stringify(data);
+        }
+
+        displayResult(className, title, details, timestamp, operationId);
+    }
+
+    function displayResult(className, title, details, timestamp, operationId) {
+        const div = document.createElement('div');
+        div.className = className;
+        div.innerHTML = `
+            <div>
+                <div style="font-weight: bold; margin-bottom: 5px;">${title}</div>
+                ${details}
+                <div class="operation-id">ID: ${operationId}</div>
+                <span class="timestamp">${timestamp}</span>
+            </div>
+        `;
+
+        // Если в messages пусто (только инструкция), очищаем
+        if (messagesDiv.children.length === 1 && messagesDiv.children[0].textContent.includes('будут отображаться')) {
+            messagesDiv.innerHTML = '';
+        }
+
+        messagesDiv.prepend(div);
+        messagesDiv.scrollTop = 0;
+    }
+
+    function updateStockDisplay(stockData, totalUnits = null) {
+        const stockKeys = Object.keys(stockData);
+
+        if (stockKeys.length === 0) {
+            stockList.innerHTML = '<div style="text-align: center; padding: 30px; color: #6c757d;">Склад пуст</div>';
+            stockSummary.style.display = 'none';
+            emptyStock.style.display = 'block';
+            totalMedicationsSpan.textContent = '0';
+            totalUnitsSpan.textContent = '0';
+            return;
+        }
+
+        stockSummary.style.display = 'block';
+        emptyStock.style.display = 'none';
+
+        // Обновляем статистику
+        let total = 0;
+        stockKeys.forEach(name => {
+            total += stockData[name];
+        });
+
+        totalMedicationsSpan.textContent = stockKeys.length;
+        totalUnitsSpan.textContent = totalUnits !== null ? totalUnits : total;
+
+        // Обновляем список препаратов
+        let html = '';
+
+        // Сортируем по названию
+        stockKeys.sort().forEach(name => {
+            const quantity = stockData[name];
+            const stockClass = quantity <= 5 ? 'low-stock' : 'normal-stock';
+
+            html += `
+                <div class="stock-item">
+                    <span class="stock-name">${name}</span>
+                    <span class="stock-quantity ${stockClass}">${quantity} шт.</span>
+                </div>
+            `;
+        });
+
+        stockList.innerHTML = html;
+    }
+
+    function log(text) {
+        const div = document.createElement('div');
+        div.className = 'log';
+        div.innerHTML = `<span class="timestamp">${new Date().toLocaleTimeString()}</span> ${text}`;
+
+        // Если в messages пусто (только инструкция), очищаем
+        if (messagesDiv.children.length === 1 && messagesDiv.children[0].textContent.includes('будут отображаться')) {
+            messagesDiv.innerHTML = '';
+        }
+
+        messagesDiv.prepend(div);
+        messagesDiv.scrollTop = 0;
+    }
+
+    // Автоматическое подключение при загрузке страницы
+    window.addEventListener('load', function() {
+        setTimeout(connect, 500);
     });
+
+    // Автоматическая отправка PING каждые 30 секунд
+    setInterval(function() {
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            sendPing();
+        }
+    }, 30000);
 </script>
 </body>
 </html>

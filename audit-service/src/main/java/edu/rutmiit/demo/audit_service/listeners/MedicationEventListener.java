@@ -15,6 +15,7 @@ public class MedicationEventListener {
 
     private static final Logger log = LoggerFactory.getLogger(MedicationEventListener.class);
 
+    // Слушаем создание препарата из medications-exchange
     @RabbitListener(bindings = @QueueBinding(
             value = @Queue(name = "medication-audit-queue", durable = "true"),
             exchange = @Exchange(name = "medications-exchange", type = "topic"),
@@ -24,34 +25,25 @@ public class MedicationEventListener {
         log.info("АУДИТ: Создано новое лекарство: ID={}, Название={}, МНН={}, Рецептурный={}",
                 event.medicationId(), event.medicationName(), event.inn(), event.prescriptionRequired());
 
-        // Дополнительная логика: проверка рецептурных препаратов
         if (event.prescriptionRequired()) {
             log.warn("ВНИМАНИЕ: Создан рецептурный препарат {}. Требуется усиленный контроль.",
                     event.medicationName());
         }
     }
 
+    // Слушаем проверку взаимодействий из interactions-exchange ← ИСПРАВЛЕНО!
     @RabbitListener(bindings = @QueueBinding(
             value = @Queue(name = "interaction-audit-queue", durable = "true"),
-            exchange = @Exchange(name = "medications-exchange", type = "topic"),
+            exchange = @Exchange(name = "interactions-exchange", type = "topic"), // ← БЫЛО medications-exchange!
             key = "interaction.checked"
     ))
     public void handleInteractionCheckedEvent(DrugInteractionCheckedEvent event) {
         log.info("АУДИТ: Проверка взаимодействий для препарата ID={}, Название={}, Уровень риска={}, Серьезность={}",
                 event.medicationId(), event.medicationName(), event.riskLevel(), event.severity());
 
-        // Логирование критических взаимодействий
         if ("HIGH".equals(event.severity()) || event.riskLevel() > 7) {
-            log.error("КРИТИЧЕСКОЕ ВЗАИМОДЕЙСТВИЕ: {} - {}",
+            log.error("КРИТИЧЕСКОЕ ВЗАИМОДЕЙСТВИЕ: {} — {}",
                     event.medicationName(), event.recommendation());
         }
-    }
-
-    @RabbitListener(bindings = @QueueBinding(
-            value = @Queue(name = "q.audit.medications", durable = "true"),
-            exchange = @Exchange(name = "medications-fanout", type = "fanout")
-    ))
-    public void handleMedicationFanoutEvents(Object event) {
-        log.debug("Получено общее событие от medications-fanout: {}", event);
     }
 }

@@ -1,6 +1,7 @@
-version: '3.8'
+version: "3.8"
+
 services:
-  # Инфраструктура: RabbitMQ
+  # Инфраструктура: Брокер сообщений
   rabbitmq:
     image: rabbitmq:3.13-management-alpine
     container_name: rabbitmq-1
@@ -13,97 +14,150 @@ services:
       RABBITMQ_DEFAULT_PASS: guest
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - microservices-net
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # Инфраструктура: Zipkin для трейсинга
+  # Инфраструктура: Трассировка
   zipkin:
     image: openzipkin/zipkin
     container_name: zipkin-1
     ports:
       - "9411:9411"
+    networks:
+      - microservices-net
 
-  # Инфраструктура: Prometheus для мониторинга
+  # Инфраструктура: Метрики
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus-1
-    ports:
-      - "9090:9090"
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-lifecycle'
+    networks:
+      - microservices-net
 
-  # Микросервис: Уведомления (WebSocket)
+  # Микросервисы
+  analytics-service:
+    build: ./analytics-service
+    container_name: analytics-service-1
+    ports:
+      - "8084:8084"        # HTTP порт
+      - "9098:9098"        # gRPC порт (ДОБАВЛЕНО)
+    environment:
+      # RabbitMQ
+      - SPRING_RABBITMQ_HOST=rabbitmq-1
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=guest
+      - SPRING_RABBITMQ_PASSWORD=guest
+      # Actuator
+      - MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=health,info,prometheus,metrics
+      - MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS=always
+      - MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED=true
+      # Tracing
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin-1:9411/api/v2/spans
+      - MANAGEMENT_TRACING_SAMPLING_PROBABILITY=1.0
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - microservices-net
+
   notification-service:
     build: ./ws
     container_name: notification-service-1
     ports:
       - "8083:8083"
     environment:
-      - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_RABBITMQ_HOST=rabbitmq
+      # RabbitMQ
+      - SPRING_RABBITMQ_HOST=rabbitmq-1
       - SPRING_RABBITMQ_PORT=5672
       - SPRING_RABBITMQ_USERNAME=guest
       - SPRING_RABBITMQ_PASSWORD=guest
+      # Основной порт
       - SERVER_PORT=8083
+      # Actuator
+      - MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=health,info,prometheus,metrics
+      - MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS=always
+      - MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED=true
+      # Tracing
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin-1:9411/api/v2/spans
+      - MANAGEMENT_TRACING_SAMPLING_PROBABILITY=1.0
     depends_on:
       rabbitmq:
         condition: service_healthy
+    networks:
+      - microservices-net
 
-  # Микросервис: Demo REST API
+  audit-service:
+    build: ./audit-service
+    container_name: audit-service-1
+    ports:
+      - "8082:8082"
+    environment:
+      # RabbitMQ
+      - SPRING_RABBITMQ_HOST=rabbitmq-1
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=guest
+      - SPRING_RABBITMQ_PASSWORD=guest
+      # Основной порт
+      - SERVER_PORT=8082
+      # Actuator
+      - MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=health,info,prometheus,metrics
+      - MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS=always
+      - MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED=true
+      # Tracing
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin-1:9411/api/v2/spans
+      - MANAGEMENT_TRACING_SAMPLING_PROBABILITY=1.0
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - microservices-net
+
   demo-rest:
     build: ./demo-rest
     container_name: demo-rest-1
     ports:
       - "8081:8081"
     environment:
-      - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_RABBITMQ_HOST=rabbitmq
-      - SPRING_RABBITMQ_PORT=5672
-      - SERVER_PORT=8081
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-
-  # Микросервис: Аудит
-  audit-service:
-    build: ./audit-service
-    container_name: audit-service-1  # Добавлено
-    ports:
-      - "8082:8082"  # Добавлено
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker  # Добавлено
-      - SPRING_RABBITMQ_HOST=rabbitmq
-      - SPRING_RABBITMQ_PORT=5672  # Добавлено
-      - SPRING_RABBITMQ_USERNAME=guest  # Добавлено
-      - SPRING_RABBITMQ_PASSWORD=guest  # Добавлено
-      - SERVER_PORT=8082
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-
-  # Микросервис: Аналитика
-  analitics-service:
-    build: ./analytics-service  
-    container_name: analytics-service-1
-    ports:
-      - "8084:8084"
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_RABBITMQ_HOST=rabbitmq
+      # RabbitMQ
+      - SPRING_RABBITMQ_HOST=rabbitmq-1
       - SPRING_RABBITMQ_PORT=5672
       - SPRING_RABBITMQ_USERNAME=guest
       - SPRING_RABBITMQ_PASSWORD=guest
-      - SERVER_PORT=8084
+      # Основной порт
+      - SERVER_PORT=8081
+      # Actuator
+      - MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=health,info,prometheus,metrics
+      - MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS=always
+      - MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED=true
+      # Tracing
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin-1:9411/api/v2/spans
+      - MANAGEMENT_TRACING_SAMPLING_PROBABILITY=1.0
+      # gRPC клиент (СОГЛАСОВАНО с портом analytics-service)
+      - GRPC_CLIENT_ANALYTICS_SERVICE_ADDRESS=static://analytics-service-1:9099
     depends_on:
       rabbitmq:
         condition: service_healthy
+      analytics-service:
+        condition: service_started
+    networks:
+      - microservices-net
+
+networks:
+  microservices-net:
+    driver: bridge
 
 volumes:
   rabbitmq_data:
